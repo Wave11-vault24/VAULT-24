@@ -21,6 +21,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // SQLite's single write lock was held past busy_timeout. The transaction was
+  // rolled back completely, so the client can safely retry (same idempotency key).
+  if (err && err.code === 'SQLITE_BUSY') {
+    res.set('Retry-After', '1');
+    return res.status(503).json({ error: { code: 'SERVICE_BUSY', message: 'The bank is busy. Nothing was changed; please retry.', request_id: req.id } });
+  }
+
   if (err instanceof AppError) {
     const body = { code: err.code, message: err.message, request_id: req.id };
     if (err.details) body.details = err.details;
