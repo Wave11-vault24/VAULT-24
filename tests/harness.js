@@ -3,6 +3,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const http = require('http');
 const request = require('supertest');
 const { createApp } = require('../src/app');
 const { hashPassword } = require('../src/utils/password');
@@ -23,6 +24,9 @@ async function createWorld({ rateLimit = false } = {}) {
   const storageDir = fs.mkdtempSync(path.join(os.tmpdir(), 'vault24-docs-'));
   const config = testConfig({ DOCUMENT_STORAGE_PATH: storageDir });
   const app = createApp({ db, config, options: { rateLimit } });
+  // One listening server per world (instead of one per request) so parallel tests don't pile up servers.
+  const server = http.createServer(app);
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const hash = await passwordHash();
   let seq = 0;
 
@@ -62,7 +66,7 @@ async function createWorld({ rateLimit = false } = {}) {
 
   /** A cookie-keeping client with a CSRF token. Not logged in. */
   async function anonymous() {
-    const agent = request.agent(app);
+    const agent = request.agent(server);
     const res = await agent.get('/api/auth/csrf-token');
     return wrap(agent, res.body.csrf_token);
   }
@@ -91,7 +95,9 @@ async function createWorld({ rateLimit = false } = {}) {
   const world = {
     app, db, config, storageDir, addUser, addAccount, fund, balanceOf, anonymous, login, PASSWORD,
     pdf: syntheticIdentityPdf,
-    close() {
+    server,
+    async close() {
+      await new Promise((resolve) => server.close(resolve));
       app.locals.sessionStore.close();
       db.close();
       fs.rmSync(storageDir, { recursive: true, force: true });

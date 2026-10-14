@@ -8,7 +8,11 @@
     "dev": "nodemon src/server.js",
     "db:migrate": "node scripts/migrate.js",
     "db:create-admin": "node scripts/create-admin.js",
-    "test": "NODE_ENV=test jest --runInBand"
+    "test": "NODE_ENV=test jest --runInBand",
+    "db:seed": "node scripts/seed.js",
+    "db:reset": "node scripts/seed.js --reset",
+    "test:coverage": "NODE_ENV=test jest --runInBand --coverage",
+    "test:report": "NODE_ENV=test jest --runInBand --coverage --coverageReporters=json-summary --coverageReporters=text-summary --json --outputFile=coverage/test-results.json; node scripts/test-report.js"
   },
   "dependencies": {
     "argon2": "^0.45.1",
@@ -35,6 +39,10 @@
     "testEnvironment": "node",
     "testMatch": [
       "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
     ]
   }
 }

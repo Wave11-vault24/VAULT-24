@@ -170,7 +170,7 @@ describe('Login rate limiting', () => {
       expect(statuses.slice(0, 10).every((s) => s === 401)).toBe(true);
       expect(statuses[10]).toBe(429);
     } finally {
-      w.close();
+      await w.close();
     }
   });
 });

@@ -17,6 +17,7 @@ const server = app.listen(config.PORT, () => {
 
 function shutdown() {
   server.close(() => {
+    app.locals.sessionStore.close();
     db.close();
     process.exit(0);
   });
