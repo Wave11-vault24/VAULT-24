@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10294f">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>Sign in | VAULT24</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-body">
+  <main class="auth-layout">
+    <section class="auth-brand-panel">
+      <a class="brand auth-brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 4 16h40L24 4ZM8 20h6v17H8zm13 0h6v17h-6zm13 0h6v17h-6zM4 40h40v4H4zM22 9h4v4h-4z"/></svg></span>
+        <span class="brand-copy"><strong>VAULT<span>24</span></strong><small>Secure Banking, Anytime</small></span>
+      </a>
+      <div class="auth-promo">
+        <span class="promo-kicker">YOUR MONEY. YOUR CONTROL.</span>
+        <h1>Banking that puts<br>you first.</h1>
+        <p>Manage your account, review transactions and keep track of your money in one clear, secure-minded dashboard.</p>
+        <div class="promo-points">
+          <div><span>✓</span><p><strong>Clear account overview</strong><small>See your activity at a glance.</small></p></div>
+          <div><span>✓</span><p><strong>Transaction transparency</strong><small>Open and save individual receipts.</small></p></div>
+          <div><span>✓</span><p><strong>Extra sign-in step</strong><small>Designed for an OTP verification flow.</small></p></div>
+        </div>
+      </div>
+      <div class="auth-brand-footer">VAULT24 · Account Services</div>
+    </section>
+
+    <section class="auth-form-panel">
+      <div class="auth-mobile-brand">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 4 16h40L24 4ZM8 20h6v17H8zm13 0h6v17h-6zm13 0h6v17h-6zM4 40h40v4H4zM22 9h4v4h-4z"/></svg></span>
+        <span class="brand-copy"><strong>VAULT<span>24</span></strong><small>Secure Banking, Anytime</small></span>
+      </div>
+      <section class="auth-card" id="loginStep">
+        <div class="auth-step">CUSTOMER ACCESS</div>
+        <h2>Welcome back</h2>
+        <p class="auth-subtitle">Sign in to continue to your account.</p>
+        <form id="loginForm">
+          <label for="customerId">Email address</label>
+          <input id="customerId" name="customerId" type="email" autocomplete="username" required maxlength="120" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Enter an email address containing @ and a domain." placeholder="name@example.com">
+          <label for="accountNumber">Registered account number</label>
+          <input id="accountNumber" name="accountNumber" type="text" inputmode="numeric" autocomplete="off" required minlength="6" maxlength="34" pattern="[0-9]{6,34}" aria-describedby="accountNumberHelp" placeholder="Enter your registered account number" aria-required="">
+          <small id="accountNumberHelp" class="field-help">Enter the account number linked to your customer profile.</small>
+          <label for="password">Password</label>
+          <div class="password-field">
+            <input id="password" name="password" type="password" autocomplete="current-password" required minlength="10" maxlength="128" placeholder="Enter your password">
+            <button type="button" class="password-toggle" id="togglePassword" aria-label="Show password">Show</button>
+          </div>
+          <div class="auth-inline">
+            <label class="check-label"><input type="checkbox" id="rememberDevice"> <span>Remember this device</span></label>
+            <a href="#" id="forgotPassword">Forgot password?</a>
+          </div>
+          <button class="primary-button auth-submit" type="submit">Continue securely <span>→</span></button>
+          <p class="auth-error" id="loginError" role="alert"></p>
+        </form>
+        <div class="auth-security-note"><span>♢</span><p><strong>Security notice</strong><small>Never share your password or one-time verification code with anyone.</small></p></div>
+        <p class="service-note">Account access is not connected to a secure authentication service. Do not use a password you use elsewhere.</p>
+      </section>
+
+      <section class="auth-card hidden" id="otpStep">
+        <button class="back-button auth-back" id="backToLogin" type="button">← Back to sign in</button>
+        <div class="otp-symbol">✓</div>
+        <div class="auth-step">TWO-STEP VERIFICATION</div>
+        <h2>Verify it's you</h2>
+        <p class="auth-subtitle">In the finished product, a one-time code will be sent to your registered phone number ending in <strong>•• 4821</strong>.</p>
+        <form id="otpForm">
+          <label for="otpCode">6-digit verification code</label>
+          <input class="otp-input" id="otpCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000">
+          <p class="service-note otp-service-note">SMS verification is not connected. Account verification requires a secure backend.</p>
+          <button class="primary-button auth-submit" type="submit">Verify and open dashboard <span>→</span></button>
+          <p class="auth-error" id="otpError" role="alert"></p>
+        </form>
+        <button class="resend-button" id="resendOtp" type="button">Resend verification code</button>
+      </section>
+      <p class="auth-legal">By continuing, you acknowledge that account services are not connected to a banking provider.</p>
+    </section>
+  </main>
+  <script src="login.js"></script>
+</body>
+</html>

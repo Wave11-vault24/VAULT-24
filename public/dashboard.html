@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10294f">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <title>VAULT24 | Banking Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#" data-go-page="dashboard">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 4 4 16h40L24 4ZM8 20h6v17H8zm13 0h6v17h-6zm13 0h6v17h-6zM4 40h40v4H4zM22 9h4v4h-4z"/></svg></span>
+      <span class="brand-copy"><strong>VAULT<span>24</span></strong><small>Secure Banking, Anytime</small></span>
+    </a>
+    <nav class="side-nav" aria-label="Main navigation">
+      <button class="nav-item active" data-page="dashboard"><span class="nav-icon">⌂</span>Dashboard</button>
+      <button class="nav-item" data-page="transfer"><span class="nav-icon">⇄</span>Transfer Funds</button>
+      <button class="nav-item" data-page="history"><span class="nav-icon">◷</span>Transaction History</button>
+      <button class="nav-item" data-page="profile"><span class="nav-icon">♙</span>Profile</button>
+      <button class="nav-item" data-page="security"><span class="nav-icon">♢</span>Security</button>
+      <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+    </nav>
+    <button class="nav-item logout-button" id="logoutButton"><span class="nav-icon">⇥</span>Logout</button>
+  </aside>
+
+  <main class="main-area">
+    <header class="topbar">
+      <button class="mobile-menu" id="mobileMenu" aria-label="Open navigation" aria-expanded="false">☰</button>
+      <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search transactions, payees or services..." aria-label="Search transactions"><kbd>Ctrl K</kbd></label>
+      <div class="top-actions">
+        <button class="notification-button" id="notificationsButton" aria-label="Notifications">♧<span class="notification-dot"></span></button>
+        <button class="user-menu" id="userMenuButton"><span class="avatar" id="avatarInitials">JM</span><span class="user-meta"><strong id="topUserName">Hello, Jane Mwangi</strong><small>Customer</small></span><span class="chevron">⌄</span></button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="page active" id="page-dashboard">
+        <div class="page-heading"><h1 id="welcomeHeading">Welcome back, Jane!</h1><p>Here's an overview of your banking activity.</p></div>
+        <div class="summary-grid">
+          <article class="summary-card"><div class="summary-icon">▣</div><p>Account Balance</p><div class="summary-value" data-balance><span data-balance-value>••••••</span><button class="visibility-toggle" type="button" data-toggle-balance aria-label="Show balance" title="Show balance">◉̸</button></div></article>
+          <article class="summary-card card-green"><div class="summary-icon">⇄</div><p>Available Balance</p><div class="summary-value" data-balance><span data-balance-value>••••••</span><button class="visibility-toggle" type="button" data-toggle-balance aria-label="Show balance" title="Show balance">◉̸</button></div></article>
+          <article class="summary-card card-purple"><div class="summary-icon">▦</div><p>Total Transactions</p><div class="summary-value no-spacing" id="transactionCount">0006</div></article>
+          <article class="summary-card card-pale"><div class="summary-icon">✓</div><p>Account Status</p><div class="summary-value no-spacing status-active">Active</div></article>
+        </div>
+        <section class="panel quick-access-panel">
+          <div class="panel-heading"><h2>Quick Access</h2><span class="status-badge">Quick services</span></div>
+          <div class="quick-access-grid">
+            <button class="quick-access-card" type="button" data-quick-transfer="bank"><span class="quick-access-icon">⇄</span><strong>Bank Transfer</strong><small>Send to a bank account</small><span class="quick-access-arrow">→</span></button>
+            <button class="quick-access-card" type="button" data-quick-transfer="mtn"><span class="quick-access-icon">M</span><strong>MTN Money</strong><small>Send to MTN Mobile Money</small><span class="quick-access-arrow">→</span></button>
+            <button class="quick-access-card" type="button" data-quick-transfer="airtel"><span class="quick-access-icon">A</span><strong>Airtel Money</strong><small>Send to Airtel Money</small><span class="quick-access-arrow">→</span></button>
+            <button class="quick-access-card" type="button" data-go-page="history"><span class="quick-access-icon">◷</span><strong>Transactions</strong><small>View history and receipts</small><span class="quick-access-arrow">→</span></button>
+          </div>
+          <p class="service-note quick-access-note">Choose a service to review transfer details or view account activity.</p>
+        </section>
+        <section class="panel">
+          <div class="panel-heading"><h2>Recent Transactions</h2><button class="text-button" data-go-page="history">View All <span>→</span></button></div>
+          <div class="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Balance</th><th></th></tr></thead><tbody id="recentTransactions"></tbody></table></div>
+          <p class="empty-state hidden" id="recentEmpty">No transactions found.</p>
+        </section>
+      </section>
+
+      <section class="page" id="page-transfer">
+        <div class="page-heading"><h1>Transfer Funds</h1><p>Enter the recipient and payment details to review a transfer.</p></div>
+        <section class="panel form-panel"><h2>New Transfer</h2>
+          <form id="transferForm">
+            <label>Payment method
+              <select id="paymentMethod" required>
+                <option value="bank">Bank-to-bank transfer</option>
+                <option value="mtn">MTN Mobile Money</option>
+                <option value="airtel">Airtel Money</option>
+              </select>
+            </label>
+            <label>Recipient name<input id="recipientName" required maxlength="100" autocomplete="off" placeholder="Enter recipient name"></label>
+            <label>Your VAULT24 account number<input id="sourceAccount" inputmode="numeric" maxlength="34" pattern="[0-9]{6,34}" required autocomplete="off" placeholder="Enter your 6–34 digit account number"></label>
+            <div id="bankFields">
+              <label>Recipient bank<input id="recipientBank" maxlength="100" placeholder="Enter bank name" autocomplete="off"></label>
+              <label>Recipient account number<input id="recipientAccount" inputmode="numeric" maxlength="34" pattern="[0-9]{6,34}" placeholder="6–34 digit account number" autocomplete="off"></label>
+            </div>
+            <div id="mobileFields" class="hidden">
+              <label id="mobileNumberLabel">Mobile Money number<input id="recipientMobile" type="tel" inputmode="tel" maxlength="20" placeholder="e.g. 0971234567" autocomplete="off"></label>
+            </div>
+            <label>Amount (ZMW)<input id="transferAmount" type="number" min="1" step="0.01" required placeholder="0.00"></label>
+            <label>Payment note (optional)<input id="transferNote" maxlength="160" placeholder="What is this transfer for?"></label>
+            <button class="primary-button" type="submit">Continue to Payment</button>
+            <p class="form-message" id="transferMessage" role="status"></p>
+            <p class="service-note">Transfer requests are recorded in this interface only. Bank and mobile-money providers are not connected, so requests are not sent and no money moves.</p>
+          </form>
+        </section>
+      </section>
+
+      <section class="page" id="page-history">
+        <div class="page-heading"><h1>Transaction History</h1><p>Select any transaction to view and download its slip.</p></div>
+        <section class="panel"><div class="panel-heading"><h2>All Transactions</h2><span class="status-badge">Account activity</span></div>
+          <div class="table-scroll"><table><thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th><th>Balance</th><th></th></tr></thead><tbody id="allTransactions"></tbody></table></div>
+          <p class="empty-state hidden" id="historyEmpty">No transactions found.</p>
+        </section>
+      </section>
+
+      <section class="page" id="page-receipt">
+        <div class="page-heading"><h1>Transaction Slip</h1><p>Review or download this transaction receipt.</p></div>
+        <section class="panel receipt-panel">
+          <div class="receipt-top"><div class="receipt-brand">VAULT<span>24</span></div><span class="completed-badge" id="receiptStatus">Transaction record</span></div>
+          <div class="receipt-total"><small>TRANSACTION AMOUNT</small><strong id="receiptAmount">••••••</strong><p id="receiptType">Transaction</p></div>
+          <div class="receipt-details" id="receiptDetails"></div>
+          <div class="receipt-actions"><button class="primary-button" id="downloadReceipt" type="button">Download Slip</button><button class="secondary-button" id="printReceipt" type="button">Print / Save PDF</button><button class="secondary-button" data-go-page="history" type="button">Back to history</button></div>
+          <p class="form-message" id="receiptMessage" role="status"></p>
+          <p class="service-note">This slip records activity entered in this interface. It is not proof of settlement or confirmation from a bank or mobile-money provider.</p>
+        </section>
+      </section>
+
+      <section class="page" id="page-profile">
+        <div class="page-heading"><h1>My Profile</h1><p>Manage your customer details and account security.</p></div>
+        <section class="panel form-panel"><h2>Personal Information</h2>
+          <div class="security-check-list profile-private-summary" aria-label="Masked personal information">
+            <div><strong>Full name</strong><span id="maskedProfileName">••••••</span></div>
+            <div><strong>Email address</strong><span id="maskedProfileEmail">••••••</span></div>
+            <div><strong>Phone number</strong><span id="maskedProfilePhone">••••••</span></div>
+          </div>
+          <p class="service-note">For your privacy, only the first two and last character of each detail are displayed above. Enter the full value below only when you want to update it.</p>
+          <form id="profileForm">
+            <label>Update full name<input id="profileName" required maxlength="100" placeholder="Enter full name" autocomplete="name"></label>
+            <label>Update email address<input id="profileEmail" type="email" maxlength="120" required pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Enter an email address containing @ and a domain." placeholder="name@example.com" autocomplete="email"></label>
+            <label>Update phone number<input id="profilePhone" type="tel" maxlength="24" required placeholder="Enter phone number" autocomplete="tel"></label>
+            <button class="primary-button" type="submit">Save Changes</button><p class="form-message" id="profileMessage" role="status"></p>
+          </form>
+        </section>
+        <section class="panel form-panel password-change-panel"><h2>Login Password</h2><p class="form-message password-intro">Request verification before changing your login password.</p>
+          <form id="passwordOtpRequestForm"><label>Registered phone number<input id="passwordOtpPhone" type="tel" readonly value="+260 97 000 4821"></label><button class="primary-button" type="submit">Send verification code</button><p class="form-message" id="passwordOtpMessage" role="status"></p></form>
+          <form id="changePasswordForm" class="hidden"><label>6-digit OTP<input id="passwordOtpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="Enter verification code"></label><label>New password<input id="newPassword" type="password" minlength="8" maxlength="128" required autocomplete="new-password" placeholder="At least 8 characters"></label><label>Confirm new password<input id="confirmNewPassword" type="password" minlength="8" maxlength="128" required autocomplete="new-password" placeholder="Re-enter new password"></label><button class="primary-button" type="submit">Verify OTP &amp; change password</button><p class="form-message" id="changePasswordMessage" role="status"></p><p class="service-note">SMS verification is not connected. Account password changes require a secure backend.</p></form>
+        </section>
+        <section class="panel form-panel password-change-panel"><h2>Transaction PIN</h2><p class="password-intro">Set a separate 4–6 digit PIN for sensitive customer-dashboard actions, including viewing balances, authorizing transfers, and printing or downloading transaction slips. Your login password is used only to sign in.</p>
+          <form id="transactionPasswordForm">
+            <label id="currentTransactionPasswordLabel" class="hidden">Current transaction PIN<input id="currentTransactionPassword" type="password" inputmode="numeric" pattern="[0-9]{4,6}" autocomplete="off" maxlength="6"></label>
+            <label>New transaction PIN<input id="newTransactionPassword" type="password" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="off" required placeholder="4 to 6 digits"></label>
+            <label>Confirm transaction PIN<input id="confirmTransactionPassword" type="password" inputmode="numeric" pattern="[0-9]{4,6}" minlength="4" maxlength="6" autocomplete="off" required placeholder="Re-enter your PIN"></label>
+            <button class="primary-button" type="submit">Save Transaction PIN</button><p class="form-message" id="transactionPasswordMessage" role="status"></p>
+          </form>
+        </section>
+      </section>
+
+      <section class="page" id="page-security">
+        <div class="page-heading"><h1>Security Center</h1><p>Review layered safeguards and important deployment requirements.</p></div>
+        <section class="panel form-panel"><h2>Account Protection</h2><p><span class="completed-badge">✓ Interface safeguards enabled</span></p><div class="security-check-list"><div><strong>✓ Input validation</strong><span>Form fields validate expected formats and lengths.</span></div><div><strong>✓ Transfer confirmation</strong><span>Review recipient, payment channel and amount before recording a transfer request.</span></div><div><strong>✓ Privacy by default</strong><span>Balances remain hidden until you choose to reveal them.</span></div><div><strong>✓ Idle session timeout</strong><span>The session signs out after 10 minutes without activity.</span></div></div><p class="service-note security-warning"><strong>Important:</strong> These browser-side controls do not provide production banking security. Real protection requires server-side authentication, secure HttpOnly cookies, hashed passwords, server-verified OTPs with expiry and attempt limits, CSRF protection, rate limiting, audit logs, TLS, and provider-side payment verification.</p></section>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="page-heading"><h1>Settings</h1><p>Adjust your dashboard preferences.</p></div>
+        <section class="panel form-panel"><h2>Privacy &amp; Preferences</h2>
+          <label class="setting-label"><input type="checkbox" id="hideBalancesSetting" checked> Hide account balances by default</label>
+          <label class="setting-label"><input type="checkbox" id="confirmTransfersSetting" checked disabled> Always confirm transfers before recording them</label>
+          <p class="service-note">These preferences apply to this browser session.</p>
+        </section>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop hidden" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="confirmHeading">
+  <div class="modal-card"><h2 id="confirmHeading">Review payment</h2><p id="confirmText">Check the payment details before proceeding. You will need your transaction PIN and a 6-digit OTP to continue.</p><div class="modal-actions"><button class="secondary-button" id="cancelTransfer" type="button">Cancel</button><button class="primary-button" id="confirmTransfer" type="button">Pay Now</button></div></div>
+</div>
+<div class="modal-backdrop hidden" id="transactionPasswordBackdrop" role="dialog" aria-modal="true" aria-labelledby="transactionPasswordHeading">
+  <form class="confirm-modal" id="transactionPasswordPromptForm">
+    <h2 id="transactionPasswordHeading">Confirm transaction PIN</h2>
+    <p id="transactionPasswordPromptText">Enter your transaction PIN to continue.</p>
+    <label>Transaction PIN<input id="transactionPasswordPromptInput" type="password" inputmode="numeric" pattern="[0-9]{4,6}" autocomplete="off" required minlength="4" maxlength="6"></label>
+    <p class="form-message" id="transactionPasswordPromptMessage" role="alert"></p>
+    <div class="modal-actions"><button class="secondary-button" id="cancelTransactionPasswordPrompt" type="button">Cancel</button><button class="primary-button" type="submit">Continue</button></div>
+  </form>
+</div>
+<div class="modal-backdrop hidden" id="paymentOtpBackdrop" role="dialog" aria-modal="true" aria-labelledby="paymentOtpHeading">
+  <form class="confirm-modal" id="paymentOtpForm">
+    <h2 id="paymentOtpHeading">Enter OTP to Authorize Payment</h2>
+    <p id="paymentOtpDestination">Enter the 6-digit one-time password sent to your registered phone to authorize this payment.</p>
+    <label>6-digit OTP<input id="paymentOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="Enter 6-digit code"></label>
+    <p class="form-message" id="paymentOtpMessage" role="status" aria-live="polite"></p>
+    <p class="service-note">For real payment security, the code must be generated and verified by the server and delivered through a configured SMS gateway. This browser-only project cannot send SMS messages.</p>
+    <div class="modal-actions"><button class="secondary-button" id="cancelPaymentOtp" type="button">Cancel payment</button><button class="primary-button" type="submit">Verify OTP &amp; Complete Payment</button></div>
+  </form>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="script.js"></script>
+</body>
+</html>
