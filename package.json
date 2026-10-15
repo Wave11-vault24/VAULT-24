@@ -12,7 +12,11 @@
     "db:seed": "node scripts/seed.js",
     "db:reset": "node scripts/seed.js --reset",
     "test:coverage": "NODE_ENV=test jest --runInBand --coverage",
-    "test:report": "NODE_ENV=test jest --runInBand --coverage --coverageReporters=json-summary --coverageReporters=text-summary --json --outputFile=coverage/test-results.json; node scripts/test-report.js"
+    "test:report": "NODE_ENV=test jest --runInBand --coverage --coverageReporters=json-summary --coverageReporters=text-summary --json --outputFile=coverage/test-results.json; node scripts/test-report.js",
+    "check:frontend": "node scripts/check-frontend.js",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "mkdir -p coverage && node scripts/check-frontend.js > coverage/frontend-check.txt; playwright test; node scripts/e2e-report.js",
+    "test:all": "npm run check:frontend && npm test && npm run test:e2e"
   },
   "dependencies": {
     "argon2": "^0.45.1",
@@ -27,6 +31,8 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.56.0",
     "jest": "^30.5.2",
     "nodemon": "^3.1.14",
     "supertest": "^7.3.1"

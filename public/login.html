@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login — Vault24</title>
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <script type="module" src="/js/login.js"></script>
+</head>
+<body class="login-body">
+  <a class="skip-link" href="#login-form">Skip to login form</a>
+
+  <main class="login-main">
+    <a class="brand brand--lg login-brand" href="/" aria-label="Vault24 home">
+      <img class="brand__mark" src="/assets/images/logo-mark-navy.png" alt="" width="60" height="54">
+      <span class="brand__text">
+        <span class="brand__name">VAULT<span>24</span></span>
+        <span class="brand__tag">Secure Banking, Anytime</span>
+      </span>
+    </a>
+
+    <section class="login-card" aria-labelledby="login-title">
+      <h1 id="login-title">Login to Your Account</h1>
+      <p class="login-card__lead">Access your account securely and manage your finances with ease.</p>
+
+      <div id="login-status" tabindex="-1"></div>
+
+      <form id="login-form" class="form" novalidate>
+        <div class="field">
+          <label for="email">Email address</label>
+          <div class="input-icon">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons/sprite.svg#user"/></svg>
+            <input class="input" id="email" name="email" type="email" autocomplete="username" inputmode="email"
+                   placeholder="you@example.com" required aria-describedby="email-err">
+          </div>
+          <p class="field-error" id="email-err" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-icon">
+            <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons/sprite.svg#lock"/></svg>
+            <input class="input input--trail" id="password" name="password" type="password" autocomplete="current-password"
+                   placeholder="Password" required aria-describedby="password-err">
+            <button type="button" class="icon-btn input-icon__trail" id="toggle-password" aria-label="Show password" aria-pressed="false">
+              <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons/sprite.svg#eye-off"/></svg>
+            </button>
+          </div>
+          <p class="field-error" id="password-err" hidden></p>
+        </div>
+
+        <button class="btn btn-primary btn-block" type="submit" id="login-submit">
+          <svg class="icon" aria-hidden="true" focusable="false"><use href="/assets/icons/sprite.svg#login"/></svg>
+          Login
+        </button>
+      </form>
+
+      <hr class="divider">
+      <p class="login-card__help">Forgot your password? Visit any Vault24 branch and staff will reset it for you.</p>
+      <p class="login-card__help">Don't have an account? New customers are registered at a branch.</p>
+    </section>
+
+    <img class="login-illustration" src="/assets/images/login-illustration.jpg" alt="" width="360" height="280">
+    <p class="login-footnote">Fictional bank for a hackathon demo. Never enter real credentials.</p>
+  </main>
+</body>
+</html>

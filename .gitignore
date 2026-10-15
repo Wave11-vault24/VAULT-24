@@ -11,3 +11,5 @@ storage/private-documents/*
 !storage/private-documents/.gitkeep
 coverage/
 *.log
+test-results/
+playwright-report/

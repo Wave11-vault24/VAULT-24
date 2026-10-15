@@ -18,6 +18,14 @@ module.exports = function authRoutes({ limiters }) {
     res.json({ csrf_token: issueCsrfToken(req) });
   });
 
+  // "Am I signed in?" for pages that just need to decide where to go.
+  // Always 200 (no noisy 401s in the browser console) and reveals nothing but a boolean.
+  router.get('/session', (req, res) => {
+    const userId = req.session && req.session.userId;
+    const user = userId ? req.app.locals.db.prepare('SELECT status FROM users WHERE id = ?').get(userId) : null;
+    res.json({ authenticated: Boolean(user && user.status === 'active') });
+  });
+
   router.post('/login', limiters.login, validate({ body: schemas.auth.login }), async (req, res) => {
     const { email, password } = req.valid.body;
     const result = await authService.login(req.app.locals.db, { email, password, requestId: req.id });

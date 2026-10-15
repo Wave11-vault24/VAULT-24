@@ -1,11 +1,15 @@
-# Vault24 Bank — Backend
+# Vault24 Bank
 
-Backend for a **fictional** digital bank, built for a 24-hour cybersecurity hackathon.
+Full-stack prototype (backend + frontend) for a **fictional** digital bank, built for a 24-hour cybersecurity hackathon.
 No real money, people, accounts or identity documents are involved.
 
-**Stack:** Node.js 22 · Express 5 · SQLite (better-sqlite3) · Zod · Argon2id · express-session (SQLite store) · Helmet · express-rate-limit · Multer · Jest + Supertest
+**Backend:** Node.js 22 · Express 5 · SQLite (better-sqlite3) · Zod · Argon2id · express-session (SQLite store) · Helmet · express-rate-limit · Multer
 
-**Status:** all seven milestones done. **233 automated tests passing**; see [docs/TEST_REPORT.md](docs/TEST_REPORT.md) and the threat model in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
+**Frontend:** plain HTML5 · CSS3 · vanilla JavaScript (ES modules, Fetch API). No framework and no build step; it is served by Express from `public/`.
+
+**Tests:** Jest + Supertest (backend) · Playwright + axe-core (real-browser end-to-end and accessibility)
+
+**Status:** backend and frontend complete. **246 backend tests** and **79 browser end-to-end tests** pass; see [docs/TEST_REPORT.md](docs/TEST_REPORT.md), [docs/FRONTEND_TEST_REPORT.md](docs/FRONTEND_TEST_REPORT.md), the screen-to-API matrix in [docs/FRONTEND_INTEGRATION.md](docs/FRONTEND_INTEGRATION.md) and the threat model in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ---
 
@@ -17,8 +21,10 @@ cp .env.example .env
 # put a real secret in .env:
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 npm run db:reset        # create database + fictional demo data (prints logins)
-npm run dev             # http://localhost:3000/api/health
+npm run dev             # open http://localhost:3000
 ```
+
+Then open **http://localhost:3000** in a browser and click **Login** (demo logins below).
 
 Run the guided demo in a second terminal (needs `curl` and `jq`):
 
@@ -37,6 +43,12 @@ bash scripts/demo-walkthrough.sh
 | `npm run db:reset` | Delete DB + stored documents, migrate, seed (refuses in production) |
 | `npm test` | Full test suite (isolated in-memory DB per suite, temp storage) |
 | `npm run test:report` | Run tests with coverage and regenerate `docs/TEST_REPORT.md` |
+| `npm run check:frontend` | Static safety checks on `public/`: imports resolve; no `innerHTML`/`eval`/inline handlers/`href="#"`/`console.log` |
+| `npm run test:e2e` | Playwright end-to-end tests in Chromium against a fresh seeded server (separate `data/e2e.db`) |
+| `npm run test:e2e:report` | Static check + E2E, then regenerate `docs/FRONTEND_TEST_REPORT.md` |
+| `npm run test:all` | Static check, backend tests and E2E tests |
+
+First time running E2E on a new machine: `npx playwright install chromium`.
 
 ### Environment (`.env`)
 
@@ -50,6 +62,57 @@ bash scripts/demo-walkthrough.sh
 | `DOCUMENT_STORAGE_PATH` | `storage/private-documents` | Outside any public folder; git-ignored |
 | `MAX_DOCUMENT_SIZE_BYTES` | `5242880` (5 MB) | |
 | `BANK_CURRENCY` | `ZMW` | Single currency |
+| `DISABLE_RATE_LIMIT` | `false` | Test runs only (used by E2E). **Ignored in production.** |
+
+---
+
+## Frontend
+
+Served by Express from `public/` on the **same origin** as the API, so the session cookie and CSRF token work without CORS. Open `http://localhost:3000`.
+
+### Screens
+
+| Role | Screens |
+|---|---|
+| Public | Landing, Login, friendly 404 |
+| Customer | Dashboard (balance, available balance, total transactions, status, recent transactions, quick actions), My Accounts, Account detail with paged history, Transfer Funds (form → review → result), Transaction History (paging, filter, print), Transaction details, Profile, Security (change password) |
+| Staff | Dashboard, Register Customer (with PDF ID upload and progress), Customers (search → detail → documents → open account → replacement upload), Cash Deposit (verify → review → printable receipt) |
+| Admin | Dashboard (counts, reconciliation, recent events), Users & Staff (filters, create staff, change status, customer accounts → freeze/close), ID Documents (download, approve/reject), Audit Log (filters, paging) |
+| Everyone | Session-expired redirect, Access denied, forced password change for temporary passwords |
+
+### How it talks to the backend
+
+- **One API client** (`public/js/api.js`) holds the CSRF token **in memory only**, sends it as `X-CSRF-Token` on every POST/PATCH, picks up the new token after login and password change, and retries once if the server says the token is stale (safe, because the server rejects it before running the route).
+- Errors arrive as a typed `ApiError` (status, code, field details, request ID). A network failure is kept separate from server validation errors.
+- `401` anywhere → redirect to login with "Your session has ended". `403` shows *Access denied* and does **not** log you out.
+- Uploads use `FormData` over XHR so staff see upload progress; the browser sets the multipart boundary.
+- **Transfers** create one idempotency key per intended transfer, at the review step. If the connection drops, the screen says the outcome is unknown and offers a retry that **reuses the same key**, so the bank replays the original result instead of paying twice. Editing the transfer starts a new attempt with a new key.
+- The configurable base URL is in `public/js/config.js` (`window.VAULT24_CONFIG.apiBaseUrl`, default `/api`).
+
+### Design
+
+Colours were measured from the supplied images, and the logo and illustrations were cut from them. Details are in `docs/FRONTEND_INTEGRATION.md` §3. Two colours were darkened to pass WCAG AA contrast. Design elements with no backend support (biometric login, "Create one", "Forgot password", notifications, Pay Bills, two-step verification) are **not shown as working controls**. The list is in `docs/FRONTEND_INTEGRATION.md` §5.
+
+### Security in the browser
+
+- The CSP stays strict: all JS is in external modules, with no inline scripts or `on*=` attributes.
+- Server text is only ever set via `textContent`; there is no `innerHTML`. `npm run check:frontend` enforces this.
+- Nothing sensitive is stored in the browser. The session cookie is HttpOnly. The only `localStorage` key is the "hide balances" preference.
+- Role checks only decide what to *show*; the server authorises every call. The E2E tests open admin URLs as a customer and confirm the API returns 403.
+
+### Responsive and accessible
+
+- **Layout:** mobile-first. The sidebar becomes an off-canvas menu below 1024 px, and tables turn into cards on phones.
+- **Tested widths:** 320, 360, 375, 390, 430, 768, 1024, 1280, 1440 and 1920 px, with no horizontal scroll and no clipped money values.
+- **Accessibility:**
+  - Semantic landmarks and a skip link.
+  - Labelled fields, with errors linked to their fields via `aria-describedby` and `aria-invalid`.
+  - `aria-live` toasts and status messages.
+  - Native `<dialog>`, which provides a focus trap and Esc to close, and returns focus to the opener.
+  - Focus moves to each page's heading on navigation.
+  - Visible focus rings, and status shown with icon and text, never colour alone.
+  - Reduced-motion support.
+- **Automated scan:** axe-core reports 0 WCAG 2.x A/AA violations on 14 screens.
 
 ---
 
@@ -122,6 +185,7 @@ Errors look like `{ "error": { "code", "message", "request_id", "details?" } }`.
 | Method & path | Who | Purpose |
 |---|---|---|
 | `GET /api/health` | anyone | Liveness + DB check |
+| `GET /api/auth/session` | anyone | `{ authenticated }`, always 200 (no session created) |
 | `GET /api/auth/csrf-token` | anyone | Get CSRF token |
 | `POST /api/auth/login` | anyone | `{ email, password }` |
 | `POST /api/auth/logout` | signed in | Destroys session (204) |
@@ -165,18 +229,18 @@ Errors look like `{ "error": { "code", "message", "request_id", "details?" } }`.
 
 Generate the key once per user action (e.g. `crypto.randomUUID()` when the Send button is pressed) and reuse it on retries.
 
-### Mapping the dashboard design
+### How the dashboard design maps to the API (implemented)
 
 | Dashboard element | Source |
 |---|---|
 | "Hello, Jane Mwangi / Customer" | `GET /api/auth/me` |
 | Account Balance / Available Balance | `GET /api/accounts` → `balance`, `available_balance_minor` (equal, since there are no holds in this prototype) |
 | Total Transactions | `GET /api/accounts/:id/transactions` → `total_count` |
-| Account Status | `GET /api/profile` → `status` |
+| Account Status | `GET /api/accounts` → the selected account's `status` |
 | Recent Transactions table | `GET /api/accounts/:id/transactions?limit=6` → `created_at`, `narration`, `direction`, `amount`, `balance_after` |
 | Transfer Funds | `POST /api/transfers` |
 
-ATM withdrawals and bill payments appear in the design but are **not implemented**; only cash deposits and transfers exist.
+ATM withdrawals and bill payments appear in the design but are **not implemented**; only cash deposits and transfers exist, so the UI shows those.
 
 ---
 
@@ -197,9 +261,18 @@ src/
   validators/   Zod schemas (strict: unknown fields are rejected)
   utils/        money, names, pdf, references, account numbers, passwords
 migrations/     001_initial_schema.sql, 002_auth_and_policy.sql
-scripts/        migrate, create-admin, seed, test-report, demo-walkthrough.sh
-tests/          8 suites + harness + worker for multi-thread concurrency tests
-docs/           THREAT_MODEL.md, TEST_REPORT.md
+public/         the frontend (served by Express)
+  index.html, login.html, app.html, 404.html
+  css/          tokens, base, layout, components, pages (mobile-first)
+  js/           config, api (the only fetch layer), dom (safe builder), ui, format,
+                login, app (shell + hash router)
+  js/views/     customer, transfer, history, profile, staff, admin, shared
+  assets/       logo marks + illustrations cut from the designs, SVG icon sprite
+scripts/        migrate, create-admin, seed, test-report, e2e-report,
+                check-frontend, demo-walkthrough.sh
+tests/          8 Jest suites + harness + worker for multi-thread concurrency tests
+e2e/            Playwright specs: auth, customer, transfer, staff-admin, responsive-a11y
+docs/           THREAT_MODEL.md, TEST_REPORT.md, FRONTEND_TEST_REPORT.md, FRONTEND_INTEGRATION.md
 storage/private-documents/   uploaded PDFs (git-ignored)
 ```
 
@@ -221,13 +294,25 @@ Routes stay thin and services hold logic and SQL directly. We chose not to add s
 - No antivirus scan of PDFs; no encryption at rest.
 - Cash deposits are trusted teller input; nothing proves cash was received.
 - Single currency; no holds, reversals, interest, fees, ATM or bill payments.
-- `npm audit` flags advisories in dev-only tooling (Jest, Nodemon); `npm audit --omit=dev` is clean.
+- `npm audit` flags advisories in dev-only tooling (Jest, Nodemon, Playwright); `npm audit --omit=dev` is clean.
+- **Frontend:**
+  - No recipient-name check before a transfer, because there is no endpoint for it; the receipt shows the server-confirmed name.
+  - History search filters only the transactions already loaded.
+  - No "forgot password" self-service.
+  - Dashboard counts are computed from list endpoints, which have server-side row caps.
+  - Browsers are only tested in Chromium.
+- **One E2E flake:** in the first full run, one responsive test hung once (a 45 s timeout). It did not recur in 7 later runs (including 2 full runs and a 5× repeat of that test). It is noted here as an open item; the generated report only reflects the latest run.
 
 More detail in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
 
 ## AI assistance disclosure
 
-This backend was written with substantial help from **Claude (Anthropic)**, working through the milestones of the team's engineering brief. The AI produced the code, migrations, tests and documentation. Every test result quoted here comes from actual runs, and the test report is generated from Jest's JSON output. During development, the concurrency tests were mutation-checked: weakening the transaction mode and the balance guard made them fail.
+The backend and frontend were written with substantial help from **Claude (Anthropic)**, working through the milestones of the team's engineering briefs. The AI produced the code, migrations, tests and documentation, and measured the design colours from the supplied images. Every test result quoted here comes from actual runs: `docs/TEST_REPORT.md` is generated from Jest's JSON and `docs/FRONTEND_TEST_REPORT.md` from Playwright's JSON.
+
+Several tests were mutation-checked during development, meaning the bug they guard against was put back and the test was confirmed to fail:
+- Weakening the transaction mode and the balance guard made the concurrency tests fail.
+- Re-adding a bad import or an `innerHTML` call made the frontend checker fail.
+- Restoring the old stat-card CSS made the "money is never clipped" test fail.
 
 The team is responsible for reviewing, understanding and presenting the code.
 

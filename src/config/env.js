@@ -20,6 +20,8 @@ const schema = z.object({
   DOCUMENT_STORAGE_PATH: z.string().min(1).default('storage/private-documents'),
   MAX_DOCUMENT_SIZE_BYTES: z.coerce.number().int().positive().max(20 * 1024 * 1024).default(5 * 1024 * 1024),
   BANK_CURRENCY: z.string().regex(/^[A-Z]{3}$/).default('ZMW'),
+  // Test runs only (e2e logs in many times). Ignored when NODE_ENV=production.
+  DISABLE_RATE_LIMIT: z.enum(['true', 'false']).default('false'),
 });
 
 function loadConfig(source = process.env) {
@@ -45,6 +47,7 @@ function loadConfig(source = process.env) {
   env.DATABASE_PATH = resolve(env.DATABASE_PATH);
   env.DOCUMENT_STORAGE_PATH = resolve(env.DOCUMENT_STORAGE_PATH);
   env.isProduction = env.NODE_ENV === 'production';
+  env.rateLimitEnabled = env.isProduction || env.DISABLE_RATE_LIMIT !== 'true';
   env.isTest = env.NODE_ENV === 'test';
   return Object.freeze(env);
 }

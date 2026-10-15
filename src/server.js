@@ -10,7 +10,8 @@ const applied = migrate(db);
 if (applied.length) console.log(`Applied migrations: ${applied.join(', ')}`);
 if (config.usingFallbackSecret) console.warn('WARNING: SESSION_SECRET not set; using an insecure development fallback.');
 
-const app = createApp({ db, config });
+if (!config.rateLimitEnabled) console.warn('WARNING: rate limiting disabled (DISABLE_RATE_LIMIT=true). Never use this outside tests.');
+const app = createApp({ db, config, options: { rateLimit: config.rateLimitEnabled } });
 const server = app.listen(config.PORT, () => {
   console.log(`Vault24 API listening on port ${config.PORT} (${config.NODE_ENV})`);
 });

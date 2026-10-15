@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vault24</title>
+  <link rel="icon" href="/assets/images/favicon.png" type="image/png">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/pages.css">
+  <script type="module" src="/js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to main content</a>
+  <!-- The shell is built by js/app.js once GET /api/auth/me confirms the session. -->
+  <div id="root">
+    <div class="boot" role="status">
+      <div class="spinner"></div>
+      <p>Opening your secure session…</p>
+    </div>
+  </div>
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+  <noscript><p class="boot">Vault24 needs JavaScript enabled to show your accounts.</p></noscript>
+</body>
+</html>

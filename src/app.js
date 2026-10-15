@@ -1,5 +1,6 @@
 'use strict';
 
+const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
@@ -14,6 +15,7 @@ const { buildLimiters } = require('./middleware/rate-limit');
 const { errorHandler, notFoundHandler } = require('./middleware/error-handler');
 
 const SESSION_COOKIE = 'vault24.sid';
+const PUBLIC_DIR = path.resolve(__dirname, '..', 'public');
 
 /**
  * Build the Express app. The database handle and config are injected so tests
@@ -60,6 +62,18 @@ function createApp({ db, config, options = {} }) {
     res.status(database === 'ok' ? 200 : 503).json({ status: database === 'ok' ? 'ok' : 'degraded', database });
   });
 
+  // Frontend (same origin as the API, so cookies + CSRF need no CORS).
+  // Served before the session middleware so static files never create sessions.
+  // HTML is revalidated on every load; assets may be cached briefly.
+  app.use(express.static(PUBLIC_DIR, {
+    index: 'index.html',
+    extensions: ['html'],
+    dotfiles: 'ignore',
+    setHeaders(res, filePath) {
+      res.set('Cache-Control', filePath.endsWith('.html') ? 'no-cache' : 'public, max-age=3600');
+    },
+  }));
+
   app.use(session({
     name: SESSION_COOKIE,
     secret: config.SESSION_SECRET,
@@ -86,6 +100,13 @@ function createApp({ db, config, options = {} }) {
   app.use('/api/documents', require('./routes/documents.routes')({ config }));
   app.use('/api/admin', require('./routes/admin.routes')());
 
+  // Unknown non-API page in a browser -> friendly HTML 404; API clients keep JSON.
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api') && req.accepts(['html', 'json']) === 'html') {
+      return res.status(404).sendFile(path.join(PUBLIC_DIR, '404.html'));
+    }
+    return next();
+  });
   app.use(notFoundHandler);
   app.use(errorHandler);
   return app;

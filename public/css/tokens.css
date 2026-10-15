@@ -1,0 +1,98 @@
+/*
+ * Vault24 design tokens — measured from the supplied design images
+ * (see docs/FRONTEND_INTEGRATION.md §3). Two design colours were darkened
+ * to meet WCAG AA: muted text (#7890AE -> #53627C) and success (#3C9678 -> #157A55).
+ */
+:root {
+  /* Brand */
+  --color-primary: #156CF2;
+  --color-primary-hover: #0F5BD6;
+  --color-primary-soft: #E6F0FE;
+  --color-accent: #1266F6;          /* the blue "24" in the wordmark */
+  --color-navy: #0B1F4D;
+  --color-sidebar: #062454;
+  --color-sidebar-muted: #A9BEDD;
+  --color-sidebar-hover: #0B3170;
+
+  /* Surfaces */
+  --color-background: #F0F6FC;
+  --color-background-alt: #EAF0FC;
+  --color-surface: #FFFFFF;
+  --color-surface-sunken: #F5F8FD;
+  --color-border: #DCE5F2;
+  --color-border-strong: #B9C8DE;
+
+  /* Text */
+  --color-text: #0B1F4D;
+  --color-text-muted: #53627C;
+  --color-text-inverse: #FFFFFF;
+
+  /* Status */
+  --color-success: #157A55;
+  --color-success-soft: #E4F6F0;
+  --color-warning: #9A5B00;
+  --color-warning-soft: #FFF4E0;
+  --color-danger: #C2353A;
+  --color-danger-soft: #FCE4E4;
+  --color-info: #0F5BD6;
+  --color-info-soft: #E6F0FE;
+
+  /* Dashboard stat-card tints and icon colours */
+  --tint-blue: #DEEAFC;
+  --tint-green: #E4F6F0;
+  --tint-purple: #EAEAFC;
+  --tint-sky: #E4F0FC;
+  --icon-blue: #1270F4;
+  --icon-green: #00A262;
+  --icon-purple: #7E52F0;
+  --credit-bg: #DEF0EA;
+  --debit-bg: #FCD8D8;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 999px;
+
+  /* Elevation (soft, blue-tinted like the references) */
+  --shadow-sm: 0 1px 2px rgba(11, 31, 77, 0.06);
+  --shadow-md: 0 4px 16px rgba(11, 31, 77, 0.07);
+  --shadow-lg: 0 16px 40px rgba(11, 31, 77, 0.12);
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Type */
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: clamp(2.25rem, 5vw + 1rem, 4rem);
+
+  /* Layout */
+  --content-max-width: 1440px;
+  --form-max-width: 640px;
+  --sidebar-width: 248px;
+  --header-height: 64px;
+  --tap-target: 44px;
+
+  --focus-ring: 0 0 0 3px rgba(21, 108, 242, 0.45);
+  --transition: 150ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --transition: 0ms; }
+}

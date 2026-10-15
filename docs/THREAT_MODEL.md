@@ -84,6 +84,16 @@ No role has a "set balance" or "edit ledger" capability. That code path does not
 **Mitigations.** A central error handler returns generic 500s without stack traces or SQL. Request logs record the method, path without query string, status, duration and user ID only. Audit metadata passes through a key-based redactor (`password`, `token`, `session`, `csrf`, `hash`…).
 **Evidence.** `tests/security.test.js` › *Safe logging and auditing*, *Error responses*.
 
+### 7. Browser-side attacks on the frontend (XSS, clickjacking, token theft)
+**Threat.** Injected script in a narration or name steals data or makes requests as the user; the site is framed for clickjacking; tokens leak from storage.
+**Mitigations.**
+- Helmet CSP `script-src 'self'` and `script-src-attr 'none'`: inline scripts and `on*=` attributes cannot run. The frontend has none, and `npm run check:frontend` fails the build if any appear.
+- Every server-supplied string is rendered with `textContent` through a small DOM builder; `innerHTML`, `eval` and `insertAdjacentHTML` are banned by the same check.
+- `frame-ancestors 'self'` (Helmet) blocks third-party framing.
+- The session cookie is HttpOnly and SameSite=Strict. The CSRF token lives only in a JS module variable, never in web storage. `localStorage` holds a single non-sensitive UI preference.
+- Role-based navigation is cosmetic; the server authorises every request.
+**Evidence.** `scripts/check-frontend.js` (mutation-checked); `e2e/auth.spec.js` › *customer login…* (no storage, no readable cookie) and *customer opening an admin URL…* (API 403).
+
 ## Accepted limitations (prototype)
 
 - **SQLite:** one writer at a time and one file. Not suitable for multiple app instances or high-concurrency production banking; a real system would use PostgreSQL with row-level locking and replication.

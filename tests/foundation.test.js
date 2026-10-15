@@ -121,3 +121,64 @@ describe('Milestone 1 — SQLite connection settings', () => {
     }
   });
 });
+
+describe('Frontend serving', () => {
+  let db;
+  let app;
+  beforeAll(() => {
+    db = createTestDb();
+    app = createApp({ db, config: testConfig() });
+  });
+  afterAll(() => { app.locals.sessionStore.close(); db.close(); });
+
+  test.each(['/', '/login.html', '/app.html', '/css/tokens.css', '/js/api.js', '/assets/icons/sprite.svg', '/assets/images/logo-mark-navy.png'])('serves %s', async (url) => {
+    const res = await request(app).get(url);
+    expect(res.status).toBe(200);
+  });
+
+  test('pages are revalidated, assets cached briefly, and both carry the strict CSP', async () => {
+    const html = await request(app).get('/app.html');
+    expect(html.headers['cache-control']).toBe('no-cache');
+    expect(html.headers['content-security-policy']).toMatch(/script-src 'self'/);
+    expect(html.headers['content-security-policy']).toMatch(/script-src-attr 'none'/);
+    const css = await request(app).get('/css/base.css');
+    expect(css.headers['cache-control']).toBe('public, max-age=3600');
+  });
+
+  test('static files never create a session', async () => {
+    const res = await request(app).get('/app.html');
+    expect(res.headers['set-cookie']).toBeUndefined();
+    expect(db.prepare('SELECT COUNT(*) AS n FROM sessions').get().n).toBe(0);
+  });
+
+  test('unknown pages get the HTML 404 for browsers and JSON for API clients', async () => {
+    const page = await request(app).get('/no-such-page').set('Accept', 'text/html');
+    expect(page.status).toBe(404);
+    expect(page.headers['content-type']).toMatch(/text\/html/);
+    expect(page.text).toMatch(/Page not found/);
+    const api = await request(app).get('/api/no-such-route').set('Accept', 'text/html');
+    expect(api.status).toBe(404);
+    expect(api.body.error.code).toBe('NOT_FOUND');
+  });
+
+  test('path traversal outside public/ is refused', async () => {
+    const res = await request(app).get('/..%2f..%2fpackage.json');
+    expect([400, 403, 404]).toContain(res.status);
+    expect(res.text).not.toMatch(/"dependencies"/);
+  });
+
+  test('GET /api/auth/session answers 200 false without creating a session', async () => {
+    const res = await request(app).get('/api/auth/session');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ authenticated: false });
+    expect(res.headers['set-cookie']).toBeUndefined();
+  });
+});
+
+describe('Rate-limit switch', () => {
+  test('DISABLE_RATE_LIMIT only works outside production', () => {
+    expect(loadConfig({ NODE_ENV: 'development', DISABLE_RATE_LIMIT: 'true' }).rateLimitEnabled).toBe(false);
+    expect(loadConfig({ NODE_ENV: 'production', SESSION_SECRET: 'a'.repeat(48), DISABLE_RATE_LIMIT: 'true' }).rateLimitEnabled).toBe(true);
+    expect(loadConfig({ NODE_ENV: 'development' }).rateLimitEnabled).toBe(true);
+  });
+});
